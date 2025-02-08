@@ -13,6 +13,7 @@ SOURCES += \
     codefield.cpp \
     createnewprojectwindow.cpp \
     main.cpp \
+    parser.cpp \
     startMenu.cpp \
     windowmanager.cpp
 
@@ -21,6 +22,7 @@ HEADERS += \
     StyleSheets.h \
     codefield.h \
     createnewprojectwindow.h \
+    parser.h \
     startMenu.h \
     windowmanager.h
 

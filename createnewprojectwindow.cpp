@@ -8,16 +8,16 @@ CreateNewProjectWindow::CreateNewProjectWindow(QDir dirPath, QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Form)
 {
-    // QString zipFilePath = "C:\\Users\\Radu\\Desktop\\googletest-1.15.2.zip";
-    // QString extractPath = dirPath.absolutePath();
+    QString zipFilePath = "C:\\Users\\Radu\\Desktop\\googletest-1.15.2.zip";
+    QString extractPath = dirPath.absolutePath();
     //ui->setupUi(this);
     this->setWindowTitle("C++ Unit Testing");
     this->setStyleSheet("background-color: #000000;");
     fileSystemModel = new QFileSystemModel();
     fileSystemModel->setRootPath(dirPath.absolutePath());
     initLayout();
-    // unzipWithTar(zipFilePath, extractPath);
-    // compileGTest(extractPath + "\\googletest-1.15.2");
+    unzipWithTar(zipFilePath, extractPath);
+    compileGTest(extractPath + "\\googletest-1.15.2");
 }
 
 void CreateNewProjectWindow::initLayout()
