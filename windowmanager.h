@@ -3,6 +3,7 @@
 #include <QDir>
 class Widget;
 class CreateNewProjectWindow;
+class TestResultsWindow;
 class WindowManager
 {
 public:
@@ -12,13 +13,16 @@ private:
     static WindowManager* instance;
     Widget* startMenu;
     CreateNewProjectWindow* newProjectWindow;
+    TestResultsWindow* testResultsWindow;
 
 public:
     static WindowManager* init();
     void openStartMenu();
     void closeStartMenu();
-    void openNewProjectWindow(QDir dirPath);
-    void closeNewProjectWindow();
+    void openExistingProjectWindow(QDir dirPath);
+    void closeExistingProjectWindow();
+    void closeTestResultsWindow();
+    //void open
 };
 
 #endif // WINDOWMANAGER_H

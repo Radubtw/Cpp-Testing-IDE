@@ -1,6 +1,7 @@
 #include "windowmanager.h"
 #include "startMenu.h"
 #include "createnewprojectwindow.h"
+#include "testresultswindow.h"
 #include <QDebug>
 
 WindowManager* WindowManager::instance;
@@ -32,11 +33,11 @@ void WindowManager::openStartMenu()
 void WindowManager::closeStartMenu()
 {
 
-    if (startMenu) // Check if startMenu is not null
+    if (startMenu)
     {
-        if (startMenu->isActiveWindow()) // Check if startMenu is the active window
+        if (startMenu->isActiveWindow())
         {
-            startMenu->close(); // Close the window
+            startMenu->close();
         }
     }
     else
@@ -45,20 +46,20 @@ void WindowManager::closeStartMenu()
     }
 }
 
-void WindowManager::openNewProjectWindow(QDir dirPath)
+void WindowManager::openExistingProjectWindow(QDir dirPath)
 {
     newProjectWindow = new CreateNewProjectWindow(dirPath);
     newProjectWindow->show();
 }
 
-void WindowManager::closeNewProjectWindow()
+void WindowManager::closeExistingProjectWindow()
 {
 
-    if (newProjectWindow) // Check if startMenu is not null
+    if (newProjectWindow)
     {
-        if (newProjectWindow->isActiveWindow()) // Check if startMenu is the active window
+        if (newProjectWindow->isActiveWindow())
         {
-            newProjectWindow->close(); // Close the window
+            newProjectWindow->close();
         }
     }
     else
@@ -66,3 +67,4 @@ void WindowManager::closeNewProjectWindow()
         qDebug() << "startMenu is NULL\n";
     }
 }
+

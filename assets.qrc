@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/assets">
+        <file>cog.png</file>
+        <file>play.png</file>
+        <file>terminal.png</file>
+    </qresource>
+</RCC>

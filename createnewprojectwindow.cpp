@@ -1,35 +1,60 @@
+#include <QSplitter>
+#include <QIcon>
+#include <QStandardItemModel>
+#include <QAction>
+#include <QShortcut>
 #include "createnewprojectwindow.h"
 #include "ui_createnewprojectwindow.h"
-#include "GTestSetupFunctions.hpp"
+#include "windowmanager.h"
+#include "processes.hpp"
+#include "generatetestdialog.h"
 #include "StyleSheets.h"
-#include <QSplitter>
-#include <QStandardItemModel>
+#include "parser.h"
+#include "testresultswindow.h"
+
 CreateNewProjectWindow::CreateNewProjectWindow(QDir dirPath, QWidget *parent)
     : QWidget(parent)
+    , projectPath(dirPath)
     , ui(new Ui::Form)
 {
-    QString zipFilePath = "C:\\Users\\Radu\\Desktop\\googletest-1.15.2.zip";
-    QString extractPath = dirPath.absolutePath();
+    // QString zipFilePath = "C:\\Users\\Radu\\Desktop\\googletest-1.15.2.zip";
+    // QString extractPath = dirPath.absolutePath();
     //ui->setupUi(this);
-    this->setWindowTitle("C++ Unit Testing");
-    this->setStyleSheet("background-color: #000000;");
+    setWindowTitle("C++ Unit Testing");
+    setMinimumSize(800, 800);
+    setStyleSheet("background-color: #000000;");
+
     fileSystemModel = new QFileSystemModel();
-    fileSystemModel->setRootPath(dirPath.absolutePath());
+    fileSystemModel->setRootPath(projectPath.absolutePath());
+
     initLayout();
-    unzipWithTar(zipFilePath, extractPath);
-    compileGTest(extractPath + "\\googletest-1.15.2");
+    initMenuBar(projectPath);
+
+    //const QString projectPath = dirPath.absolutePath();
+    //processes::tests::compileAndRunTests(projectPath);
+    connectElements();
+
+    // unzipWithTar(zipFilePath, extractPath);
+    // compileGTest(extractPath + "\\googletest-1.15.2");
+}
+
+void CreateNewProjectWindow::initMenuBar(QDir dirPath)
+{
+    menuBar = new MenuBar(dirPath, this );
+    mainLayout->setMenuBar(menuBar);
 }
 
 void CreateNewProjectWindow::initLayout()
 {
+    QString zipFilePath = "C:\\Users\\Radu\\Desktop\\googletest-1.15.2.zip";
+
     mainLayout = new QHBoxLayout(this);
+    mainLayout->setSpacing(0);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
     setLayout(mainLayout);
-
-
-
-    QSplitter *horizontalMainSplitter = new QSplitter(Qt::Horizontal, this);
+    horizontalMainSplitter = new QSplitter(Qt::Horizontal, this);
     QSplitter *verticalMainSplitter = new QSplitter(Qt::Vertical, this);
-
+    QSplitter *terminalSplitter = new QSplitter(Qt::Vertical, this);
     treeView = new QTreeView();
     treeView->setModel(fileSystemModel);
     treeView->setRootIndex(fileSystemModel->index(fileSystemModel->rootPath()));
@@ -38,18 +63,23 @@ void CreateNewProjectWindow::initLayout()
     treeView->hideColumn(2);
     treeView->hideColumn(3);
     treeView->setHeaderHidden(1);
-    treeView->setStyleSheet(treeViewStyleSheet);
-
-    codeField= new CodeField(horizontalMainSplitter);
-    codeField->setStyleSheet(codeFieldStyleSheet);
-
-    testCodeField = new CodeField(verticalMainSplitter);
-    testCodeField->setStyleSheet(codeFieldStyleSheet);
+    treeView->setStyleSheet(stylesheets::treeViewStyleSheet);
+    treeView->setFocusPolicy(Qt::NoFocus);
 
     horizontalMainSplitter->addWidget(treeView);
-    horizontalMainSplitter->addWidget(codeField);
-    horizontalMainSplitter->addWidget(verticalMainSplitter);
+    codeFieldsSplitter = new QSplitter(Qt::Horizontal, horizontalMainSplitter);
+    codeFieldsSplitter->setHandleWidth(1); // thinner handle
+    codeFieldsSplitter->setStyleSheet("QSplitter::handle { background: transparent; }");
+    QString emptyString = "";
+    codeFields.push_back(new CodeField(emptyString, codeFieldsSplitter));
+    //codeFields.push_back(new CodeField(codeFieldsSplitter));
 
+    testCodeField = new CodeField(zipFilePath, verticalMainSplitter);
+    for(const auto& codeField : codeFields)
+    {
+        codeFieldsSplitter->addWidget(codeField);
+    }
+    horizontalMainSplitter->addWidget(verticalMainSplitter);
     QList<int> horizontalSizes;
     horizontalSizes << 200 << 600 << 400;
     horizontalMainSplitter->setSizes(horizontalSizes);
@@ -62,24 +92,22 @@ void CreateNewProjectWindow::initLayout()
 
     secondaryLayout = new QHBoxLayout(secondaryLayoutWrapper);
     testAndMockButtonsLayout = new QVBoxLayout();
-
+    secondaryLayout->setSpacing(0);
+    secondaryLayout->setContentsMargins(0,0,0,0);
     selectedClassOrFunction = new QTextEdit(secondaryLayoutWrapper);
-    selectedClassOrFunction->setStyleSheet(selectedClassOrFunctionStyleSheet);
+    selectedClassOrFunction->setStyleSheet(stylesheets::selectedClassOrFunctionStyleSheet);
 
 
-    writeTestButton = new QPushButton("Write Test", this);
     generateTestButton = new QPushButton("Generate Test", this);
-    writeMockButton = new QPushButton("Write Mock", this);
     generateMockButton = new QPushButton("Generate Mock", this);
 
-    writeTestButton->setStyleSheet(buttonStyleSheet);
-    generateTestButton->setStyleSheet(buttonStyleSheet);
-    writeMockButton->setStyleSheet(buttonStyleSheet);
-    generateMockButton->setStyleSheet(buttonStyleSheet);
+    //generateTestButton->setIcon(QIcon(":/assets/cog.png"));
+    //generateMockButton->setIcon(QIcon(":/assets/play.png"));
 
-    testAndMockButtonsLayout->addWidget(writeTestButton);
+    generateTestButton->setStyleSheet(stylesheets::buttonStyleSheet);
+    generateMockButton->setStyleSheet(stylesheets::buttonStyleSheet);
+
     testAndMockButtonsLayout->addWidget(generateTestButton);
-    testAndMockButtonsLayout->addWidget(writeMockButton);
     testAndMockButtonsLayout->addWidget(generateMockButton);
 
     secondaryLayout->addWidget(selectedClassOrFunction);
@@ -89,12 +117,47 @@ void CreateNewProjectWindow::initLayout()
     verticalMainSplitter->addWidget(secondaryLayoutWrapper);
     verticalMainSplitter->addWidget(testCodeField);
 
+    outputSection = new OutputSection(terminalSplitter);
+    outputSection->setStyleSheet(stylesheets::outputSection);
+    terminal = new Terminal(projectPath.absolutePath(), terminalSplitter);
+    terminalSplitter->addWidget(horizontalMainSplitter);
+    terminalSplitter->addWidget(outputSection);
+    terminalSplitter->addWidget(terminal);
+    mainLayout->addWidget(terminalSplitter);
+    outputSection->hide();
+    // mainLayout->addWidget(horizontalMainSplitter);
 
+}
+
+void CreateNewProjectWindow::connectElements()
+{
+    connect(menuBar, &MenuBar::testResultsOpened, this, &CreateNewProjectWindow::openTestResultsWindow);
     connect(treeView, &QTreeView::doubleClicked, this, &CreateNewProjectWindow::showFileContent);
-    connect(codeField, &CodeField::saved, this, &CreateNewProjectWindow::saveFileContent);
-
-    mainLayout->addWidget(horizontalMainSplitter);
-
+    // connect(treeView, &QTreeView::clicked, this, &CreateNewProjectWindow::splitCodeField);
+    connect(generateTestButton, &QPushButton::clicked, this, &CreateNewProjectWindow::openGenerateTestDialog);
+    connect(generateMockButton, &QPushButton::clicked, this, &CreateNewProjectWindow::generateMock);
+    connect(menuBar, &MenuBar::outputUpdated, outputSection, &OutputSection::updateOutput);
+    connect(menuBar, &MenuBar::outputToggled, this, &CreateNewProjectWindow::toggleOutput);
+    connect(menuBar, &MenuBar::terminalToggled, this, &CreateNewProjectWindow::toggleTerminal);
+    connect(menuBar, &MenuBar::outputCleared, outputSection, &OutputSection::clearOutput);
+    connect(menuBar, &MenuBar::explorerToggled, this, &CreateNewProjectWindow::toggleExplorer);
+    connect(menuBar, &MenuBar::codeFieldSplitted, this, &CreateNewProjectWindow::splitCodeField);
+    connect(menuBar, &MenuBar::startMenuOpened, this, &CreateNewProjectWindow::openStartMenu);
+    for(const auto& codeField : codeFields)
+    {
+        connect(codeField, &CodeField::saved, this, &CreateNewProjectWindow::saveFileContent);
+    }
+    for(auto& codeField : codeFields)
+    {
+        connect(codeField, &CodeField::closed, this, [this,codeField](){
+            const auto it = std::find(codeFields.begin(), codeFields.end(), codeField);
+            if(it != codeFields.end())
+            {
+                codeFields.erase(it);
+                codeField->deleteLater();
+            }
+        });
+    }
 }
 
 void CreateNewProjectWindow::showFileContent(const QModelIndex &index)
@@ -102,34 +165,172 @@ void CreateNewProjectWindow::showFileContent(const QModelIndex &index)
     QString filePath = fileSystemModel->filePath(index);
     if(not QFileInfo(filePath).isFile())
     {
-        codeField->setPlainText("Not a file");
         return;
     }
     QFile file(filePath);
     if(file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        currentFilePath = filePath;
-        QTextStream in(&file);
-        QString fileContents = in.readAll();
-        file.close();
-        codeField->setPlainText(fileContents);
-    }
-    else
-    {
-        codeField->setPlainText("Unable to open file");
+        if(codeFields.size() > 0)
+        {
+            for(const auto& codeField : codeFields)
+            {
+                if(QApplication::focusWidget() == codeField->getTextEdit() || codeField->getPath() == "")
+                {
+                    codeField->setPath(filePath);
+                    QTextStream in(&file);
+                    QString fileContents = in.readAll();
+                    file.close();
+                    codeField->getTextEdit()->setText(fileContents);
+                    connect(codeField, &CodeField::saved, this, &CreateNewProjectWindow::saveFileContent);
+                    return;
+                }
+            }
+        }
+        if(codeFields.size() < 5)
+        {
+            CodeField* codeField = new CodeField(filePath, codeFieldsSplitter);
+            codeFields.push_back(codeField);
+            connect(codeField, &CodeField::closed, this, [this,codeField](){
+                const auto it = std::find(codeFields.begin(), codeFields.end(), codeField);
+                if(it != codeFields.end())
+                {
+                    codeFields.erase(it);
+                    codeField->deleteLater();
+                }
+            });
+            codeField->setPath(filePath);
+            QTextStream in(&file);
+            QString fileContents = in.readAll();
+            file.close();
+            codeField->getTextEdit()->setPlainText(fileContents);
+            connect(codeField, &CodeField::saved, this, &CreateNewProjectWindow::saveFileContent);
+        }
     }
 }
 
 void CreateNewProjectWindow::saveFileContent()
 {
-    if(not QFileInfo(currentFilePath).isFile())
+    for(const auto& codeField : codeFields)
+    {
+        qDebug()<< "FILE PATH" << codeField->getPath();
+        if(QApplication::focusWidget() == codeField->getTextEdit() && not codeField->isSaved)
+        {
+            auto text = codeField->getTextEdit()->toPlainText();
+            auto path = codeField->getPath();
+            QFile file(path);
+            file.open(QIODevice::WriteOnly | QIODevice::Text);
+            QTextStream out(&file);
+            out << text;
+            file.close();
+            codeField->isSaved = true;
+            qDebug() << "CONTENTS SAVED:" << file.fileName();
+        }
+    }
+}
+
+void CreateNewProjectWindow::toggleExplorer()
+{
+    treeView->setHidden(treeView->isHidden() ^ 1);
+}
+
+void CreateNewProjectWindow::splitCodeField()
+{
+
+    if(codeFields.size() > 4)
     {
         return;
     }
-    QFile file(currentFilePath);
-    if(file.open(QIODevice::WriteOnly))
+    QString path = "";
+    if(codeFields.size() > 0)
     {
-        QTextStream stream(&file);
-        stream << codeField->toPlainText();
+        for(const auto& codeField : codeFields)
+        {
+            if(QApplication::focusWidget() == codeField->getTextEdit())
+            {
+                path = codeField->getPath();
+                break;
+            }
+        }
+        path = codeFields.front()->getPath();
     }
+    CodeField* codeField = new CodeField(path, codeFieldsSplitter);
+    connect(codeField, &CodeField::saved, this, &CreateNewProjectWindow::saveFileContent);
+    codeFields.push_back(codeField);
+    connect(codeField, &CodeField::closed, this, [this,codeField](){
+        auto it = std::find(codeFields.cbegin(), codeFields.cend(), codeField);
+        if(it != codeFields.end())
+        {
+            codeFields.erase(it);
+            codeField->deleteLater();
+        }
+    });
+
+    QFile file(codeField->getPath());
+    if(! QFileInfo(file).isFile())
+    {
+        return;
+    }
+    qDebug() << "PATH: " << codeField->getPath();
+
+    QTextStream in(&file);
+    QString fileContents = in.readAll();
+    file.close();
+    codeField->getTextEdit()->setText(fileContents);
+}
+
+void CreateNewProjectWindow::openGenerateTestDialog()
+{
+    GenerateTestDialog* dialog = new GenerateTestDialog(this);
+    if(dialog->exec() == QDialog::Accepted)
+    {
+        QString functionBody = selectedClassOrFunction->toPlainText();
+        QString testSuiteName = dialog->getTestSuiteName();
+        QString testCaseName = dialog->getTestCaseName();
+        QVector<QString> functionInputs = dialog->getFunctionInputs().split(u',');
+        QString functionOutput = dialog->getFunctionOutput();
+        QVector<ExpectCall> expectCalls = dialog->getExpectCalls();
+
+        Parser parser{};
+        parser.generateTestWithInputAndOutput(functionBody, testSuiteName, testCaseName, functionInputs, functionOutput, expectCalls); //TODO: add expectCall handling
+        QString test = parser.getGeneratedTest();
+        testCodeField->getTextEdit()->setText(test);
+    }
+}
+
+void CreateNewProjectWindow::openTestResultsWindow()
+{
+    TestResultsWindow* testResultsWindow = new TestResultsWindow(projectPath);
+    testResultsWindow->show();
+}
+
+void CreateNewProjectWindow::generateMock()
+{
+    Parser parser{};
+    QString generatedMock = parser.createMock(selectedClassOrFunction->toPlainText());
+    testCodeField->getTextEdit()->setText(generatedMock);
+}
+
+void CreateNewProjectWindow::toggleTerminal()
+{
+    if(outputSection->isVisible())
+    {
+        outputSection->toggleOutput();
+    }
+    terminal->toggleTerminal();
+}
+
+void CreateNewProjectWindow::toggleOutput()
+{
+    if(terminal->isVisible())
+    {
+        terminal->toggleTerminal();
+    }
+    outputSection->toggleOutput();
+}
+
+void CreateNewProjectWindow::openStartMenu()
+{
+    WindowManager* windowManager = WindowManager::init();
+    windowManager->closeExistingProjectWindow();
+    windowManager->openStartMenu();
 }

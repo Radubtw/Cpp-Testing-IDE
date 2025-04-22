@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui charts
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -9,21 +9,39 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    GTestSetupFunctions.cpp \
     codefield.cpp \
     createnewprojectwindow.cpp \
+    generatetestdialog.cpp \
+    inputtextedit.cpp \
     main.cpp \
+    menubar.cpp \
+    opennewprojectdialog.cpp \
+    outputsection.cpp \
     parser.cpp \
+    processes.cpp \
     startMenu.cpp \
+    terminal.cpp \
+    testresultswindow.cpp \
+    testwrapper.cpp \
     windowmanager.cpp
 
 HEADERS += \
-    GTestSetupFunctions.hpp \
+    ExpectCall.h \
     StyleSheets.h \
     codefield.h \
     createnewprojectwindow.h \
+    generatetestdialog.h \
+    inputtextedit.h \
+    menubar.h \
+    opennewprojectdialog.h \
+    outputsection.h \
     parser.h \
+    parserConstants.h \
+    processes.hpp \
     startMenu.h \
+    terminal.h \
+    testresultswindow.h \
+    testwrapper.h \
     windowmanager.h
 
 FORMS += \
@@ -36,4 +54,4 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
-    res.qrc
+    assets.qrc \

@@ -8,11 +8,6 @@
 
 class WindowManager;
 
-QT_BEGIN_NAMESPACE
-namespace Ui {
-class Widget;
-}
-QT_END_NAMESPACE
 
 class Widget : public QWidget
 {
@@ -23,7 +18,6 @@ public:
     ~Widget() = default;
 
 private:
-    Ui::Widget *ui;
     QGridLayout* mainLayout;
     QLabel* title;
     QPushButton* newProjectButton;
@@ -33,6 +27,7 @@ private:
 
 public:
     void initButtons();
+    void handleExistingProjectButtonClick();
     void handleNewProjectButtonClick();
 };
 #endif // WIDGET_H

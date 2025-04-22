@@ -1,8 +1,10 @@
+#pragma once
 #ifndef STYLESHEETS_H
 #define STYLESHEETS_H
 #include<QString>
-
-QString treeViewStyleSheet= R"(QTreeView {
+namespace stylesheets
+{
+inline const static QString treeViewStyleSheet= R"(QTreeView {
     background-color: #2E3440; /* Dark background */
     color: #D8DEE9; /* Light text color */
     border: 1px solid #4C566A; /* Dark border */
@@ -95,19 +97,19 @@ QString treeViewStyleSheet= R"(QTreeView {
         background: none; /* Remove the background of the scrollbar track */
     })";
 
-QString codeFieldStyleSheet = R"(
-        CodeField {
+inline const static QString codeFieldStyleSheet = R"(
+        QTextEdit {
             background-color: #2E3440;
             color: #D8DEE9;
             border: 1px solid #4C566A;
             border-radius: 5px;
-            padding: 5px;
+            padding: 10px;
             selection-background-color: #81A1C1;
             selection-color: #ECEFF4;
             font-family: "Segoe UI", sans-serif;
             font-size: 14px;
         }
-        CodeField:focus {
+        QTextEdit:focus {
             border: 1px solid #81A1C1;
         }
         QScrollBar:vertical {
@@ -148,7 +150,7 @@ QString codeFieldStyleSheet = R"(
         }
     )";
 
-QString buttonStyleSheet = R"(
+inline const static QString buttonStyleSheet = R"(
         QPushButton {
             background-color: #2E3440;
             color: white;
@@ -165,7 +167,23 @@ QString buttonStyleSheet = R"(
         }
     )";
 
-QString selectedClassOrFunctionStyleSheet = R"(
+inline const static QString closeButtonStyleSheet = R"(
+        QPushButton {
+            background-color: #fa0202;
+            color: white;
+            padding: 10px;
+            font-size: 5px;
+            border: 2px solid #4C566A;
+        }
+        QPushButton:hover {
+            background-color: #fa0202;
+        }
+        QPushButton:pressed {
+            background-color: #fa0202;
+        }
+    )";
+
+inline const static QString selectedClassOrFunctionStyleSheet = R"(
         QTextEdit {
             background-color: #2E3440;
             color: #D8DEE9;
@@ -218,4 +236,127 @@ QString selectedClassOrFunctionStyleSheet = R"(
         }
     )";
 
+inline const static QString outputSection = R"(
+        OutputSection {
+            background-color: #2E3440;
+            color: #D8DEE9;
+            border: 1px solid #4C566A;
+            border-radius: 5px;
+            padding: 5px;
+            selection-background-color: #81A1C1;
+            selection-color: #ECEFF4;
+            font-family: "Segoe UI", sans-serif;
+            font-size: 14px;
+        }
+        OutputSection:focus {
+            border: 1px solid #81A1C1;
+        }
+        QScrollBar:vertical {
+            background: #3B4252;
+            width: 12px;
+            margin: 0px 0px 0px 0px;
+        }
+        QScrollBar::handle:vertical {
+            background: #4C566A;
+            min-height: 20px;
+            border-radius: 6px;
+        }
+        QScrollBar::add-line:vertical,
+        QScrollBar::sub-line:vertical {
+            background: none;
+        }
+        QScrollBar::add-page:vertical,
+        QScrollBar::sub-page:vertical {
+            background: none;
+        }
+        QScrollBar:horizontal {
+            background: #3B4252;
+            height: 12px;
+            margin: 0px 0px 0px 0px;
+        }
+        QScrollBar::handle:horizontal {
+            background: #4C566A;
+            min-width: 20px;
+            border-radius: 6px;
+        }
+        QScrollBar::add-line:horizontal,
+        QScrollBar::sub-line:horizontal {
+            background: none;
+        }
+        QScrollBar::add-page:horizontal,
+        QScrollBar::sub-page:horizontal {
+            background: none;
+        }
+    )";
+
+inline const static QString terminal = R"(
+        QTextEdit {
+            background-color: #2E3440;
+            color: #D8DEE9;
+            border: 1px solid #4C566A;
+            border-radius: 5px;
+            padding: 5px;
+            selection-background-color: #81A1C1;
+            selection-color: #ECEFF4;
+            font-family: "Segoe UI", sans-serif;
+            font-size: 14px;
+        }
+        QTextEdit:focus {
+            border: 1px solid #81A1C1;
+        }
+        QScrollBar:vertical {
+            background: #3B4252;
+            width: 12px;
+            margin: 0px 0px 0px 0px;
+        }
+        QScrollBar::handle:vertical {
+            background: #4C566A;
+            min-height: 20px;
+            border-radius: 6px;
+        }
+        QScrollBar::add-line:vertical,
+        QScrollBar::sub-line:vertical {
+            background: none;
+        }
+        QScrollBar::add-page:vertical,
+        QScrollBar::sub-page:vertical {
+            background: none;
+        }
+        QScrollBar:horizontal {
+            background: #3B4252;
+            height: 12px;
+            margin: 0px 0px 0px 0px;
+        }
+        QScrollBar::handle:horizontal {
+            background: #4C566A;
+            min-width: 20px;
+            border-radius: 6px;
+        }
+        QScrollBar::add-line:horizontal,
+        QScrollBar::sub-line:horizontal {
+            background: none;
+        }
+        QScrollBar::add-page:horizontal,
+        QScrollBar::sub-page:horizontal {
+            background: none;
+        }
+    )";
+
+inline const static QString inputLine = R"(
+        QLineEdit {
+            background-color: #2E3440;
+            color: #D8DEE9;
+            border: 1px solid #4C566A;
+            border-radius: 5px;
+            padding: 5px;
+            selection-background-color: #81A1C1;
+            selection-color: #ECEFF4;
+            font-family: "Segoe UI", sans-serif;
+            font-size: 14px;
+        }
+        QLineEdit:focus {
+            border: 1px solid #81A1C1;
+        }
+    )";
+}
 #endif // STYLESHEETS_H
