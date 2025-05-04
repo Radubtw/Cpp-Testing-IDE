@@ -22,11 +22,10 @@ CreateNewProjectWindow::CreateNewProjectWindow(QDir dirPath, QWidget *parent)
     //ui->setupUi(this);
     setWindowTitle("C++ Unit Testing");
     setMinimumSize(800, 800);
-    setStyleSheet("background-color: #000000;");
+    setStyleSheet("background-color: #A9A9A9;");
 
     fileSystemModel = new QFileSystemModel();
     fileSystemModel->setRootPath(projectPath.absolutePath());
-
     initLayout();
     initMenuBar(projectPath);
 
@@ -47,12 +46,13 @@ void CreateNewProjectWindow::initMenuBar(QDir dirPath)
 void CreateNewProjectWindow::initLayout()
 {
     QString zipFilePath = "C:\\Users\\Radu\\Desktop\\googletest-1.15.2.zip";
-
+    lastClickedPath = projectPath.path();
     mainLayout = new QHBoxLayout(this);
     mainLayout->setSpacing(0);
     mainLayout->setContentsMargins(0, 0, 0, 0);
     setLayout(mainLayout);
     horizontalMainSplitter = new QSplitter(Qt::Horizontal, this);
+    horizontalMainSplitter->setContentsMargins(0, 0, 0, 0);
     QSplitter *verticalMainSplitter = new QSplitter(Qt::Vertical, this);
     QSplitter *terminalSplitter = new QSplitter(Qt::Vertical, this);
     treeView = new QTreeView();
@@ -65,20 +65,56 @@ void CreateNewProjectWindow::initLayout()
     treeView->setHeaderHidden(1);
     treeView->setStyleSheet(stylesheets::treeViewStyleSheet);
     treeView->setFocusPolicy(Qt::NoFocus);
+    treeView->setContentsMargins(0, 0, 0, 0);
 
-    horizontalMainSplitter->addWidget(treeView);
+    treeViewLayoutWidget = new QWidget();
+    QIcon newFileIcon = QIcon(":assets/newFile.png");
+    QIcon newDirectoryIcon = QIcon(":assets/newDirectory.png");
+    newFileButton = new QPushButton();
+    newDirectoryButton = new QPushButton();
+    newFileButton->setIcon(newFileIcon);
+    newDirectoryButton->setIcon(newDirectoryIcon);
+    newFileButton->setStyleSheet(" color: white;"); //TODO: stylesheets
+    newDirectoryButton->setStyleSheet("color: white;"); //TODO: stylesheets
+    projectName = new ClickableLabel();
+    projectName->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    projectName->setStyleSheet("color: white;font-weight: bold;");
+    QList<QString> pathTokens;
+    QString path = projectPath.absolutePath();
+    if(path.contains('\\'))
+    {
+        pathTokens = path.split(u'\\');
+    }
+    else
+    {
+        pathTokens = path.split(u'/');
+    }
+    projectName->setText(pathTokens[pathTokens.length()-1]);
+    treeViewLayout = new QGridLayout(treeViewLayoutWidget);
+    treeViewLayout->addWidget(projectName, 0, 0, 1, 8);
+    treeViewLayout->addWidget(newFileButton, 0,8,1,1);
+    treeViewLayout->addWidget(newDirectoryButton, 0,9,1,1);
+    treeViewLayout->addWidget(treeView, 2,0,10,10);
+    horizontalMainSplitter->addWidget(treeViewLayoutWidget);
+
+    newFileButton->setContentsMargins(0, 0, 0, 0);
+    newDirectoryButton->setContentsMargins(0, 0, 0, 0);
+    treeViewLayout->setContentsMargins(0, 0, 0, 0);
+    treeViewLayoutWidget->setContentsMargins(0, 0, 0, 0);
+    projectName->setContentsMargins(0, 0, 0, 0);
+
     codeFieldsSplitter = new QSplitter(Qt::Horizontal, horizontalMainSplitter);
     codeFieldsSplitter->setHandleWidth(1); // thinner handle
     codeFieldsSplitter->setStyleSheet("QSplitter::handle { background: transparent; }");
     QString emptyString = "";
     codeFields.push_back(new CodeField(emptyString, codeFieldsSplitter));
-    //codeFields.push_back(new CodeField(codeFieldsSplitter));
-
-    testCodeField = new CodeField(zipFilePath, verticalMainSplitter);
+    QString generatedString = "Generated Output";
+    testCodeField = new GeneratedTextEdit(verticalMainSplitter);
     for(const auto& codeField : codeFields)
     {
         codeFieldsSplitter->addWidget(codeField);
     }
+
     horizontalMainSplitter->addWidget(verticalMainSplitter);
     QList<int> horizontalSizes;
     horizontalSizes << 200 << 600 << 400;
@@ -96,13 +132,10 @@ void CreateNewProjectWindow::initLayout()
     secondaryLayout->setContentsMargins(0,0,0,0);
     selectedClassOrFunction = new QTextEdit(secondaryLayoutWrapper);
     selectedClassOrFunction->setStyleSheet(stylesheets::selectedClassOrFunctionStyleSheet);
-
+    selectedClassOrFunction->setReadOnly(true);
 
     generateTestButton = new QPushButton("Generate Test", this);
     generateMockButton = new QPushButton("Generate Mock", this);
-
-    //generateTestButton->setIcon(QIcon(":/assets/cog.png"));
-    //generateMockButton->setIcon(QIcon(":/assets/play.png"));
 
     generateTestButton->setStyleSheet(stylesheets::buttonStyleSheet);
     generateMockButton->setStyleSheet(stylesheets::buttonStyleSheet);
@@ -123,6 +156,7 @@ void CreateNewProjectWindow::initLayout()
     terminalSplitter->addWidget(horizontalMainSplitter);
     terminalSplitter->addWidget(outputSection);
     terminalSplitter->addWidget(terminal);
+    terminalSplitter->setContentsMargins(0, 0, 0, 0);
     mainLayout->addWidget(terminalSplitter);
     outputSection->hide();
     // mainLayout->addWidget(horizontalMainSplitter);
@@ -133,22 +167,24 @@ void CreateNewProjectWindow::connectElements()
 {
     connect(menuBar, &MenuBar::testResultsOpened, this, &CreateNewProjectWindow::openTestResultsWindow);
     connect(treeView, &QTreeView::doubleClicked, this, &CreateNewProjectWindow::showFileContent);
-    // connect(treeView, &QTreeView::clicked, this, &CreateNewProjectWindow::splitCodeField);
+    connect(treeView, &QTreeView::clicked, this, &CreateNewProjectWindow::clickTreeViewEntry);
+    connect(projectName, &ClickableLabel::clicked, this, &CreateNewProjectWindow::clickLabel);
+    connect(newDirectoryButton, &QPushButton::clicked, this, &CreateNewProjectWindow::showNewDirLineEdit);
+    connect(newFileButton, &QPushButton::clicked, this, &CreateNewProjectWindow::showNewFileLineEdit);
     connect(generateTestButton, &QPushButton::clicked, this, &CreateNewProjectWindow::openGenerateTestDialog);
     connect(generateMockButton, &QPushButton::clicked, this, &CreateNewProjectWindow::generateMock);
     connect(menuBar, &MenuBar::outputUpdated, outputSection, &OutputSection::updateOutput);
+    connect(menuBar->processes,&Processes::outputChanged,this, &CreateNewProjectWindow::readOutput); // ??????????
     connect(menuBar, &MenuBar::outputToggled, this, &CreateNewProjectWindow::toggleOutput);
     connect(menuBar, &MenuBar::terminalToggled, this, &CreateNewProjectWindow::toggleTerminal);
     connect(menuBar, &MenuBar::outputCleared, outputSection, &OutputSection::clearOutput);
     connect(menuBar, &MenuBar::explorerToggled, this, &CreateNewProjectWindow::toggleExplorer);
     connect(menuBar, &MenuBar::codeFieldSplitted, this, &CreateNewProjectWindow::splitCodeField);
     connect(menuBar, &MenuBar::startMenuOpened, this, &CreateNewProjectWindow::openStartMenu);
-    for(const auto& codeField : codeFields)
-    {
-        connect(codeField, &CodeField::saved, this, &CreateNewProjectWindow::saveFileContent);
-    }
     for(auto& codeField : codeFields)
     {
+        connect(codeField, &CodeField::saved, this, &CreateNewProjectWindow::saveFileContent);
+        connect(codeField, &CodeField::sendSelectedText, selectedClassOrFunction, &QTextEdit::setPlainText);
         connect(codeField, &CodeField::closed, this, [this,codeField](){
             const auto it = std::find(codeFields.begin(), codeFields.end(), codeField);
             if(it != codeFields.end())
@@ -158,6 +194,11 @@ void CreateNewProjectWindow::connectElements()
             }
         });
     }
+}
+
+void CreateNewProjectWindow::readOutput(QString output)
+{
+    outputSection->updateOutput(output);
 }
 
 void CreateNewProjectWindow::showFileContent(const QModelIndex &index)
@@ -182,6 +223,7 @@ void CreateNewProjectWindow::showFileContent(const QModelIndex &index)
                     file.close();
                     codeField->getTextEdit()->setText(fileContents);
                     connect(codeField, &CodeField::saved, this, &CreateNewProjectWindow::saveFileContent);
+                    connect(codeField, &CodeField::sendSelectedText, selectedClassOrFunction, &QTextEdit::setPlainText);
                     return;
                 }
             }
@@ -204,6 +246,7 @@ void CreateNewProjectWindow::showFileContent(const QModelIndex &index)
             file.close();
             codeField->getTextEdit()->setPlainText(fileContents);
             connect(codeField, &CodeField::saved, this, &CreateNewProjectWindow::saveFileContent);
+            connect(codeField, &CodeField::sendSelectedText, selectedClassOrFunction, &QTextEdit::setPlainText);
         }
     }
 }
@@ -230,7 +273,7 @@ void CreateNewProjectWindow::saveFileContent()
 
 void CreateNewProjectWindow::toggleExplorer()
 {
-    treeView->setHidden(treeView->isHidden() ^ 1);
+    treeViewLayoutWidget->setHidden(treeViewLayoutWidget->isHidden() ^ 1);
 }
 
 void CreateNewProjectWindow::splitCodeField()
@@ -291,7 +334,7 @@ void CreateNewProjectWindow::openGenerateTestDialog()
         QVector<ExpectCall> expectCalls = dialog->getExpectCalls();
 
         Parser parser{};
-        parser.generateTestWithInputAndOutput(functionBody, testSuiteName, testCaseName, functionInputs, functionOutput, expectCalls); //TODO: add expectCall handling
+        parser.generateTestWithInputAndOutput(functionBody, testSuiteName, testCaseName, functionInputs, functionOutput, expectCalls);
         QString test = parser.getGeneratedTest();
         testCodeField->getTextEdit()->setText(test);
     }
@@ -333,4 +376,93 @@ void CreateNewProjectWindow::openStartMenu()
     WindowManager* windowManager = WindowManager::init();
     windowManager->closeExistingProjectWindow();
     windowManager->openStartMenu();
+}
+
+void CreateNewProjectWindow::clickLabel()
+{
+    lastClickedPath = projectPath.absolutePath();
+}
+
+void CreateNewProjectWindow::clickTreeViewEntry(const QModelIndex index)
+{
+    QFileSystemModel *model = qobject_cast<QFileSystemModel *>(treeView->model());
+    lastClickedPath = model->filePath(index);
+}
+
+void CreateNewProjectWindow::showNewFileLineEdit()
+{
+    if(newDirLineEdit)
+    {
+        newDirLineEdit->hide();
+    }
+    newFileLineEdit = new QLineEdit();
+    treeViewLayout->addWidget(newFileLineEdit,1,0,1,10);
+    newFileLineEdit->show();
+    newFileLineEdit->setFocus();
+    connect(newFileLineEdit, &QLineEdit::returnPressed, this, &CreateNewProjectWindow::createNewFile);
+}
+
+void CreateNewProjectWindow::showNewDirLineEdit()
+{
+    if(newFileLineEdit)
+    {
+        newFileLineEdit->hide();
+    }
+    newDirLineEdit = new QLineEdit();
+    treeViewLayout->addWidget(newDirLineEdit,1,0,1,10);
+    newDirLineEdit->show();
+    newDirLineEdit->setFocus();
+    connect(newDirLineEdit, &QLineEdit::returnPressed, this, &CreateNewProjectWindow::createNewDirectory);
+}
+
+void CreateNewProjectWindow::createNewFile()
+{
+    QFileInfo path(lastClickedPath);
+    if(QFileInfo(path).isFile())
+    {
+        if (!QFile::exists(path.dir().absolutePath() + "/" + newFileLineEdit->text())) {
+            QFile file(path.dir().absolutePath() + "/" + newFileLineEdit->text());
+            if (file.open(QIODevice::WriteOnly)) {
+                file.close();
+                newFileLineEdit->hide();
+            }
+        }
+    }
+    else
+    {
+        if (!QFile::exists(path.absolutePath() + "/" + newFileLineEdit->text())) {
+            QFile file(lastClickedPath + "/" + newFileLineEdit->text());
+            if (file.open(QIODevice::WriteOnly)) {
+                file.close();
+                newFileLineEdit->hide();
+            }
+        }
+    }
+}
+
+void CreateNewProjectWindow::createNewDirectory()
+{
+    QFileInfo path(lastClickedPath);
+    if(QFileInfo(path).isFile())
+    {
+        qDebug() << "IS FILE";
+        QDir newDir(path.dir().absolutePath());
+        if(!QDir(newDir.absolutePath() + newDirLineEdit->text()).exists())
+        {
+            qDebug() << "DIR DOES NOT ALREADY EXIST";
+            newDir.mkdir(newDirLineEdit->text());
+            newDirLineEdit->hide();
+        }
+    }
+    else
+    {
+        qDebug() << "IS NOT FILE";
+        QDir newDir(lastClickedPath);
+        if(!QDir(newDir.absolutePath() + newDirLineEdit->text()).exists())
+        {
+            qDebug() << "DIR DOES NOT ALREADY EXIST";
+            newDir.mkdir(newDirLineEdit->text());
+            newDirLineEdit->hide();
+        }
+    }
 }

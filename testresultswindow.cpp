@@ -3,8 +3,8 @@
 #include <QFile>
 #include <QLegend>
 #include <QLegendMarker>
-// #include "parser.h"
-// #include "parserConstants.h"
+#include <QHBoxLayout>
+#include <QScrollBar>
 
 TestResultsWindow::TestResultsWindow(QDir projectPath, QWidget *parent)
     : QWidget{parent}
@@ -42,7 +42,7 @@ void TestResultsWindow::initLayout()
 
     allSuitesChart = new QChart();
     allSuitesChart->addSeries(series);
-    allSuitesChart->setTitle("Test Results by Suites");
+    allSuitesChart->setTitle("Results of test suites");
     allSuitesChart->legend()->setAlignment(Qt::AlignBottom);
     QList<QLegendMarker*> markers = allSuitesChart->legend()->markers();
     QList<QLegendMarker*> passedAndFailedMarkers;
@@ -80,15 +80,25 @@ void TestResultsWindow::initLayout()
     chartView->show();
 
     testOutput = new QTextEdit();
+    testOutput->setReadOnly(true);
     backButton = new QPushButton("Back");
+    infoSection = new QLabel();
+    infoSection->setWordWrap(true);
 
-    layout->addWidget(backButton, 0, 2);
-    layout->addWidget(chartView, 1, 0);
-    layout->addWidget(testOutput, 1, 1);
+    baseInfoSectionText += "Passed Percentage: " + QString::number(passedPercentage) + "%\n";
+    baseInfoSectionText += "Total time: " + QString::number(TestWrapper::calculateTotalTime(tests)) + " ms";
+    infoSection->setText(baseInfoSectionText);
 
-    backButton->hide();
+    layout->addWidget(chartView, 0, 0, 11, 4);
+    layout->addWidget(testOutput, 1, 4, 10, 2);
+    layout->addWidget(infoSection, 0, 4, 1, 1);
+    layout->addWidget(backButton, 0, 5, 1, 1);
+
+    backButton->setText("Close");
+    qDebug() << "TIME IN MS: " << TestWrapper::calculateTotalTime(tests);
 
     setBaseTestOutputText(failedTestSuites, passedTestSuites);
+    testOutput->verticalScrollBar()->setValue(testOutput->verticalScrollBar()->maximum());
 }
 
 void TestResultsWindow::openTestSuite(QPieSlice* slice)
@@ -121,7 +131,7 @@ void TestResultsWindow::openTestSuite(QPieSlice* slice)
     }
     currentSuiteChart = new QChart();
     currentSuiteChart->addSeries(testsSeries);
-    currentSuiteChart->setTitle("Test Results in " + testsInSuite.front().testSuite + " suite");
+    currentSuiteChart->setTitle("Results of tests from " + testsInSuite.front().testSuite + " suite");
     currentSuiteChart->legend()->setAlignment(Qt::AlignBottom);
     //currentSuiteChart->legend()->hide();
     chartView->setChart(currentSuiteChart);
@@ -172,8 +182,14 @@ void TestResultsWindow::openTestSuite(QPieSlice* slice)
         passedAndFailedMarkers[1]->setLabel("Failed");
         passedAndFailedMarkers[1]->setBrush(Qt::red);
     }
+    qDebug() << "SUITE TIME IN MS: " << TestWrapper::calculateTotalTimePerSuite(tests, currentSuite);
 
-    backButton->show();
+    suiteInfoSectionText.clear();
+    suiteInfoSectionText += "Passed Percentage: " + QString::number(100.00f - TestWrapper::calculatePercentFailed(testsInSuite)) + "%\n";
+    suiteInfoSectionText += "Total time: " + QString::number(TestWrapper::calculateTotalTimePerSuite(tests, currentSuite)) + " ms";
+    infoSection->setText(suiteInfoSectionText);
+
+    backButton->setText("Back");
 }
 
 void TestResultsWindow::openSingleTest(QPieSlice* slice)
@@ -196,8 +212,18 @@ void TestResultsWindow::openSingleTest(QPieSlice* slice)
                 singleTestSeries->slices().front()->setBrush(Qt::green);
             }
             singleTestChart = new QChart();
+            singleTestChart->setTitle("Result of " + test.testName);
             singleTestChart->addSeries(singleTestSeries);
             chartView->setChart(singleTestChart);
+            test.isFailed ? singleTestChart->legend()->markers(singleTestSeries).front()->setLabel("Failed") :
+                singleTestChart->legend()->markers(singleTestSeries).front()->setLabel("Passed");
+            singleTestChart->legend()->setAlignment(Qt::AlignBottom);
+
+            testInfoSectionText.clear();
+            test.isFailed ? testInfoSectionText += "Failed\n" : testInfoSectionText += "Passed\n";
+            testInfoSectionText += "Total time: " + test.timeInMs+ " ms";
+            infoSection->setText(testInfoSectionText);
+
             return;
         }
     }
@@ -220,7 +246,7 @@ void TestResultsWindow::interpretOutputFile()
     QString testName;
     QString output;
     bool isFailed = false;
-    int timeInMs = 0;
+    QString timeInMs;
     QHash<QString, QString> nameAndOutput;
     int i = 0;
     int offset = 0;
@@ -229,6 +255,7 @@ void TestResultsWindow::interpretOutputFile()
         testSuite = "";
         testName = "";
         output = "";
+        timeInMs = "";
         QString slice = testsOutputString.sliced(i);
         if(slice.indexOf(run) != -1)
         {
@@ -268,11 +295,20 @@ void TestResultsWindow::interpretOutputFile()
 
                 output += slice[offset++];
             }
-            offset += ok.length();
             if(output.size() == 4)
             {
                 output = "NO OUTPUT\n";
             }
+            offset += ok.length();
+            while((offset < slice.length()) && (slice[offset] != '('))
+            {
+                offset++;
+            }
+            while((offset < slice.length()) && (slice[offset] != ' '))
+            {
+                timeInMs+= slice[++offset];
+            }
+
             tests.append(TestWrapper{testSuite,testName, output.trimmed(), isFailed, timeInMs});
             i+= offset;
         }
@@ -327,22 +363,33 @@ void TestResultsWindow::setCurrentSuiteOutputText(QString suite)
 {
     for(const auto& test : tests)
     {
-
+        if(test.testSuite == suite)
+        {
+            testOutput->append(test.toString());
+        }
     }
 }
 void TestResultsWindow::back()
 {
     testOutput->clear();
-    if(chartView->chart() == currentSuiteChart)
+    if(chartView->chart() == allSuitesChart)
+    {
+        close();
+    }
+    else if(chartView->chart() == currentSuiteChart)
     {
         setBaseTestOutputText(failedTestSuites, passedTestSuites);
         chartView->setChart(allSuitesChart);
-        backButton->hide();
+        backButton->setText("Close");
+
+        infoSection->setText(baseInfoSectionText);
     }
     else if(chartView->chart() == singleTestChart)
     {
         chartView->setChart(currentSuiteChart);
         setCurrentSuiteOutputText(currentSuite);
         singleTestSeries->slices().front()->label();
+
+        infoSection->setText(suiteInfoSectionText);
     }
 }

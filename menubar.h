@@ -7,6 +7,8 @@
 #include <QAction>
 #include <QDir>
 
+#include "processes.hpp"
+
 class MenuBar : public QMenuBar
 {
     Q_OBJECT
@@ -14,6 +16,7 @@ public:
     explicit MenuBar(QDir dirPath, QWidget* parent = nullptr);
     ~MenuBar() = default;
     void init();
+    Processes* processes;
 private:
     QDir dirPath;
     QMenu* file;
@@ -23,6 +26,7 @@ private:
     QMenu* terminal;
     QMenu* output;
     QMenu* testResults;
+    QVector<QAction*> processActions{};
 signals:
     void outputUpdated(const QString output);
     void outputToggled();
@@ -32,6 +36,7 @@ signals:
     void codeFieldSplitted();
     void testResultsOpened();
     void startMenuOpened();
+    void processStarted();
 public slots:
     void toggleTerminal();
     void toggleOutput();
@@ -42,6 +47,8 @@ public slots:
     void runTests();
     void openTestResults();
     void openStartMenu();
+    void disableProcessActions();
+    void enableProcessActions();
 };
 
 #endif // MENUBAR_H

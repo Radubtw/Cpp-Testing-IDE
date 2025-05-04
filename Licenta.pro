@@ -9,8 +9,10 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    clickablelabel.cpp \
     codefield.cpp \
     createnewprojectwindow.cpp \
+    generatedtextedit.cpp \
     generatetestdialog.cpp \
     inputtextedit.cpp \
     main.cpp \
@@ -28,8 +30,10 @@ SOURCES += \
 HEADERS += \
     ExpectCall.h \
     StyleSheets.h \
+    clickablelabel.h \
     codefield.h \
     createnewprojectwindow.h \
+    generatedtextedit.h \
     generatetestdialog.h \
     inputtextedit.h \
     menubar.h \

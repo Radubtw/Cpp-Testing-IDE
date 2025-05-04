@@ -10,10 +10,13 @@
 #include <QVector>
 #include <QSplitter>
 
+#include "generatedtextedit.h"
+#include "clickablelabel.h"
 #include "menubar.h"
 #include "codefield.h"
 #include "outputsection.h"
 #include "terminal.h"
+#include "processes.hpp"
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class Form;
@@ -36,7 +39,7 @@ private:
     QFileSystemModel* fileSystemModel;
     QTreeView* treeView;
     QVector<CodeField*> codeFields;
-    CodeField* testCodeField;
+    GeneratedTextEdit* testCodeField;
     OutputSection* outputSection;
     Terminal* terminal;
     QTextEdit* selectedClassOrFunction;
@@ -44,6 +47,13 @@ private:
     QPushButton* generateMockButton;
     QPushButton* newDirectoryButton;
     QPushButton* newFileButton;
+    ClickableLabel* projectName;
+    Processes* processes;
+    QWidget* treeViewLayoutWidget;
+    QString lastClickedPath;
+    QLineEdit* newFileLineEdit;
+    QLineEdit* newDirLineEdit;
+    QGridLayout* treeViewLayout;
     //QPushButton* compileAndRunTests;
 public:
     void initLayout();
@@ -60,8 +70,13 @@ private slots:
     void toggleTerminal();
     void toggleOutput();
     void openStartMenu();
-    // void createNewDirectory();
-    // void createNewFile();
+    void readOutput(QString output);
+    void createNewDirectory();
+    void createNewFile();
+    void showNewDirLineEdit();
+    void showNewFileLineEdit();
+    void clickLabel();
+    void clickTreeViewEntry(const QModelIndex index);
 signals:
 };
 

@@ -3,6 +3,8 @@
 #include "processes.hpp"
 MenuBar::MenuBar(QDir dirPath, QWidget* parent) : QMenuBar(parent), dirPath(dirPath)
 {
+    processes = new Processes(dirPath.path());
+    processes->process = new QProcess();
     init();
 }
 
@@ -33,6 +35,7 @@ void MenuBar::init()
     buildTestsAction->setShortcut(QKeySequence(tr("Ctrl+5")));
 
     build->addAction(buildTestsAction);
+    processActions.push_back(buildTestsAction);
 
     run = new QMenu("&Run");
     QAction *runProjectAction = new QAction("Run project");
@@ -44,6 +47,8 @@ void MenuBar::init()
 
     run->addAction(runProjectAction);
     run->addAction(runTestsAction);
+    processActions.push_back(runProjectAction);
+    processActions.push_back(runTestsAction);
 
     terminal = new QMenu("&Terminal");
     QAction *terminalAction = new QAction("Terminal");
@@ -84,8 +89,27 @@ void MenuBar::init()
     QObject::connect(splitCodeFieldAction, &QAction::triggered, this, &MenuBar::splitCodeField);
     QObject::connect(testResultsAction, &QAction::triggered, this, &MenuBar::openTestResults);
     QObject::connect(startMenuAction, &QAction::triggered, this, &MenuBar::openStartMenu);
+
     setStyleSheet("background-color:000000");
     show();
+}
+
+void MenuBar::disableProcessActions()
+{
+    qDebug() << "=== Attempting to disable actions ===";
+    for(const auto& action : processActions) {
+        qDebug() << "Action before disable:" << action->text() << "Enabled?" << action->isEnabled();
+        action->setEnabled(false);
+        qDebug() << "Action after disable:" << action->text() << "Enabled?" << action->isEnabled();
+    }
+}
+
+void MenuBar::enableProcessActions()
+{
+    for(const auto& action : processActions)
+    {
+        action->setEnabled(true);
+    }
 }
 
 void MenuBar::openStartMenu()
@@ -127,10 +151,15 @@ void MenuBar::openTestResults()
 
 void MenuBar::runTests()
 {
-    emit outputUpdated(QString(processes::Processes{}.compileAndRunTests(dirPath.absolutePath())));
+    emit processStarted();
+    // QObject::connect(processes->process,&QProcess::started, this, &MenuBar::disableProcessActions, Qt::QueuedConnection);
+    // QObject::connect(processes->process,&QProcess::finished, this, &MenuBar::enableProcessActions, Qt::QueuedConnection);
+    processes->runTests(dirPath.absolutePath());
 }
 
 void MenuBar::compileTests()
 {
-   emit outputUpdated(QString(processes::Processes{}.compileTests(dirPath.absolutePath())));
+    emit processStarted();
+    processes->compileTests(dirPath.absolutePath());
 }
+

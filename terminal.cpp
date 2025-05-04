@@ -10,7 +10,10 @@ Terminal::Terminal(QString workingDir, QWidget *parent)
     terminalOutput = new QTextEdit(this);
     mainLayout->addWidget(terminalOutput);
     mainLayout->addWidget(inputLine);
-    //setLayout(mainLayout);
+
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    terminalOutput->setContentsMargins(0, 0, 0, 0);
+    inputLine->setContentsMargins(0, 0, 0, 0);
 
     terminalOutput->setStyleSheet(stylesheets::terminal);
     inputLine->setStyleSheet(stylesheets::inputLine);

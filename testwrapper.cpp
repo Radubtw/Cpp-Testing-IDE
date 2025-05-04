@@ -2,7 +2,7 @@
 
 TestWrapper::TestWrapper() {}
 
-TestWrapper::TestWrapper(QString testSuite, QString testName, QString output, bool isFailed, int timeInMs) :
+TestWrapper::TestWrapper(QString testSuite, QString testName, QString output, bool isFailed, QString timeInMs) :
     testSuite(testSuite), testName(testName), output(output), isFailed(isFailed), timeInMs(timeInMs) {}
 
 QString TestWrapper::toString() const
@@ -11,7 +11,7 @@ QString TestWrapper::toString() const
     testString += "Test Name: " + testName + "\n";
     testString += "Test Restult: ";
     isFailed ? testString += "FAILED\n" : testString += "PASSED\n";
-    testString += "Time: " + QString::number(timeInMs) + "ms\n";
+    testString += "Time: " + timeInMs + "ms\n";
     testString += "Output:\n" + output + "\n";
     return testString;
 }
@@ -68,3 +68,27 @@ QVector<QString> TestWrapper::passedTestSuites(QVector<TestWrapper> tests)
     }
     return passedTestSuites;
 }
+
+int TestWrapper::calculateTotalTimePerSuite(QVector<TestWrapper>tests , QString suite)
+{
+    int totalTime = 0;
+    for(const auto& test : tests)
+    {
+        if(test.testSuite == suite)
+        {
+            totalTime += test.timeInMs.simplified().toInt();
+        }
+    }
+    return totalTime;
+}
+
+int TestWrapper::calculateTotalTime(QVector<TestWrapper> tests)
+{
+    int totalTime = 0;
+    for(const auto& test : tests)
+    {
+        totalTime += test.timeInMs.simplified().toInt();
+    }
+    return totalTime;
+}
+

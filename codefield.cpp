@@ -34,7 +34,6 @@ CodeField::CodeField(QString& path, QWidget* parent) : QWidget(parent), path(pat
     connect(textEdit, &QTextEdit::textChanged, this, [this](){
         isSaved = false;
         qDebug() << "Text changed, isSaved = false";
-
     });
 }
 
@@ -49,9 +48,22 @@ void CodeField::keyPressEvent(QKeyEvent* event)
     {
         emit saved();
     }
+    else if((event->modifiers() & Qt::ControlModifier) and (event->key() == Qt::Key_P))
+    {
+        QString selectedText = this->textEdit->textCursor().selectedText();
+        if(not selectedText.isEmpty())
+        {
+            qDebug() << "Sending selected text:" << selectedText;
+            emit sendSelectedText(selectedText);
+        }
+        else
+        {
+            qDebug() << "No text selected, nothing to send.";
+        }
+    }
     else
     {
-       QWidget::keyPressEvent(event);
+        QWidget::keyPressEvent(event);
     }
 }
 

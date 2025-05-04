@@ -12,6 +12,7 @@
 #include <QTextEdit>
 #include <QPushButton>
 #include <QGridLayout>
+#include <QLabel>
 #include "testwrapper.h"
 
 class TestResultsWindow : public QWidget
@@ -25,6 +26,9 @@ private:
     QDir projectPath;
     QString testsOutputString;
     QString currentSuite;
+    QVector<QString> failedTestSuites;
+    QVector<QString> passedTestSuites;
+    QVector<TestWrapper> tests;
     QPieSeries* series;
     QPieSeries* testsSeries;
     QPieSeries* singleTestSeries;
@@ -32,12 +36,13 @@ private:
     QChart* currentSuiteChart;
     QChart* singleTestChart;
     QChartView* chartView;
-    QVector<TestWrapper> tests;
     QGridLayout* layout;
     QTextEdit* testOutput;
     QPushButton* backButton;
-    QVector<QString> failedTestSuites;
-    QVector<QString> passedTestSuites;
+    QLabel* infoSection;
+    QString baseInfoSectionText;
+    QString suiteInfoSectionText;
+    QString testInfoSectionText;
 
     void setCurrentSuiteOutputText(QString suite);
     void setBaseTestOutputText(QVector<QString> failedTestSuites, QVector<QString> passedTestSuites);

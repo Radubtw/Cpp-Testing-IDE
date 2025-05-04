@@ -3,5 +3,7 @@
         <file>cog.png</file>
         <file>play.png</file>
         <file>terminal.png</file>
+        <file>newDirectory.png</file>
+        <file>newFile.png</file>
     </qresource>
 </RCC>

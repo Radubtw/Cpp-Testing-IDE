@@ -3,8 +3,11 @@
 #include <QDebug>
 #include <QDir>
 #include <QFile>
-namespace processes
-{
+
+Processes::Processes(QString projectPath, QObject *parent)
+    : QObject(parent), projectPath(projectPath)
+{}
+
 void Processes::unzipWithTar(const QString &zipFilePath, const QString &extractPath) {
     QProcess tarProcess;
     tarProcess.setProgram("tar");
@@ -66,116 +69,100 @@ void Processes::compileGTest(const QString &gtestSourceDir) {
     }
     qDebug() << "GTest compiled successfully!";
 }
-QString& Processes::compileTests(const QString& projectPath)
+void Processes::compileTests(const QString& projectPath)
 {
-    output = "";
+    // Disconnect any previous connections
+    disconnect(process, &QProcess::finished, nullptr, nullptr);
+
+    output.clear();
     QDir buildDir(projectPath + "/build");
     if (!buildDir.exists()) {
-        if (!buildDir.mkpath(".")) {
-            output+="Failed to create build directory!";
-            return output;
-        }
+        buildDir.mkpath(".");
     }
 
-    QProcess cmakeProcess;
-    cmakeProcess.setWorkingDirectory(buildDir.absolutePath());
-    cmakeProcess.setProgram("cmake");
-    cmakeProcess.setArguments({"..", "-G Ninja"});
+    // Configure for CMake step
+    process->setWorkingDirectory(buildDir.absolutePath());
+    process->setProgram("cmake");
+    process->setArguments({"..", "-G Ninja"});
 
-    output+="Running CMake...";
-    cmakeProcess.start();
-    if (!cmakeProcess.waitForFinished(-1)) {
-        output+="CMake process failed to start or finish!";
-        return output;
-    }
+    // Connect output handlers
+    connect(process, &QProcess::readyReadStandardOutput, this, &Processes::readOutput);
+    connect(process, &QProcess::readyReadStandardError, this, &Processes::readOutput);
 
-    if (cmakeProcess.exitCode() != 0) {
-        output+="CMake configuration failed:";
-        output+=cmakeProcess.readAllStandardError();
-        return output;
-    }
-    output+="CMake configuration successful!";
+    // Connect finished handler with state tracking
+    connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this, [this, buildDir](int exitCode, QProcess::ExitStatus status) {
+                static bool isBuildStep = false; // Track which step we're on
 
-    QProcess buildProcess;
-    buildProcess.setWorkingDirectory(buildDir.absolutePath());
-    buildProcess.setProgram("cmake");
-    buildProcess.setArguments({"--build", "."});
+                if (exitCode == 0) {
+                    if (!isBuildStep) {
+                        // CMake step succeeded, now do build
+                        output += "CMake finished successfully. Starting build...\n";
+                        emit outputChanged(output);
 
-    output+="Building Project...";
-    buildProcess.start();
-    if (!buildProcess.waitForFinished(-1)) {
-        output+="Build process failed to start or finish!";
-        return output;
-    }
+                        process->setProgram("cmake");
+                        process->setArguments({"--build", "."});
+                        isBuildStep = true;
+                        process->start();
+                    } else {
+                        // Build step completed successfully
+                        output += "Build completed successfully!\n";
+                        emit outputChanged(output);
+                        isBuildStep = false; // Reset for next run
+                    }
+                } else {
+                    output += isBuildStep ? "Build failed!\n" : "CMake failed!\n";
+                    emit outputChanged(output);
+                    isBuildStep = false; // Reset on failure
+                }
+            });
 
-    if (buildProcess.exitCode() != 0) {
-        output+="Build failed:";
-        output+=buildProcess.readAllStandardError();
-        return output;
-    }
-    output+="Tests compiled successfully!";
-    return output;
+    process->start();
 }
 
-// QString& Processes::runTests(const QString& projectPath)
-// {
-//     output = "";
-//     QProcess runTestsProcess;
-//     runTestsProcess.setWorkingDirectory(projectPath + "/build");
-//     runTestsProcess.setProgram("ctest");
-//     runTestsProcess.setArguments({"-V"});
-//     output+="Running Tests";
-//     runTestsProcess.start();
-//     if (!runTestsProcess.waitForFinished(-1)) {
-//         output+="Run process failed to start or finish!";
-//         return output;
-//     }
-//     output+=runTestsProcess.readAllStandardOutput();
-//     output+="Tests ran successfully!";
-
-//     QFile file(projectPath + "/testsOutput.log");
-//     file.open(QIODevice::WriteOnly);
-//     QTextStream stream(&file);
-//     stream << output;
-//     file.close();
-
-//     return output;
-// }
-
-QString& Processes::runTests(const QString& projectPath)
+void Processes::runTests(const QString& projectPath)
 {
     output = "";
-    QProcess runTestsProcess;
-    runTestsProcess.setWorkingDirectory(projectPath + "/build");
-    runTestsProcess.setProgram("ctest");
-    runTestsProcess.setArguments({"-V"});
+    process = new QProcess(this);
 
-    runTestsProcess.start();
+    process->setWorkingDirectory(projectPath + "/build");
+    process->setProgram("ctest");
+    process->setArguments({"-V"});
+    connect(process, &QProcess::readyReadStandardOutput, this, &Processes::readOutput);
 
-
-    output+="Tests ran successfully!";
-
+    connect(process, &QProcess::readyReadStandardError, this, &Processes::readOutput);
+    connect(process, &QProcess::finished, process, &QProcess::deleteLater);
     QFile file(projectPath + "/testsOutput.log");
-    file.open(QIODevice::Append);
-    QTextStream stream(&file);
-    stream << output;
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    QTextStream out(&file);
+    out << "";
     file.close();
 
-    return output;
+    process->start();
 }
 
-QString& Processes::compileAndRunTests(const QString& projectPath)
+void Processes::compileAndRunTests(const QString& projectPath)
 {
     output = "";
-    output+=compileTests(projectPath);
-    output+=runTests(projectPath);
-    return output;
+    compileTests(projectPath);
+    if(process->state() == QProcess::NotRunning)
+    {
+        runTests(projectPath);
+    }
 }
 
-void Processes::readOutput(QProcess& process)
+void Processes::readOutput()
 {
-    output+=process.readAllStandardOutput();
-    output+=process.readAllStandardError();
-}
-
+    output += process->readAllStandardOutput();
+    output += process->readAllStandardError();
+    if(process->program() == "ctest")
+    {
+        QFile file(projectPath + "/testsOutput.log");
+        file.open(QIODevice::Append | QIODevice::Text);
+        QTextStream out(&file);
+        out << output;
+        file.close();
+    }
+    emit outputChanged(output);
+    output = "";
 }
