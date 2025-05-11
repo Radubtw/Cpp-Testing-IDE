@@ -5,31 +5,30 @@
 #include <QTextEdit>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QGridLayout>
+
 CodeField::CodeField(QString& path, QWidget* parent) : QWidget(parent), path(path)
 {
-    QHBoxLayout* headerLayout = new QHBoxLayout();
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    QGridLayout* layout = new QGridLayout(this);
     textEdit = new QTextEdit();
+    textEdit->setWordWrapMode(QTextOption::NoWrap);
     isSaved = true;
     setFocusPolicy(Qt::ClickFocus);
     setMinimumWidth(100);
-    closeButton = new QPushButton();
+    closeButton = new QPushButton("X");
     closeButton->setFixedSize(20, 20);
 
     label = new QLabel();
     label->setMinimumWidth(40);
     setLabel();
+    label->setContentsMargins(0, 0, 0, 0);
+    closeButton->setContentsMargins(0, 0, 0, 0);
 
-
-    headerLayout->addWidget(label);
-    headerLayout->addStretch();
-    headerLayout->addWidget(closeButton);
-
-    layout->addLayout(headerLayout);
-    layout->addWidget(textEdit);
+    layout->addWidget(label, 0,0, 1,1);
+    layout->addWidget(closeButton, 0,19,1,1);
+    layout->addWidget(textEdit,1,0,20,20);
     setStyleSheets();
-    layout->setContentsMargins(2, 0, 2, 0);
-    headerLayout->setContentsMargins(0, 0, 0, 0);
+    layout->setContentsMargins(0, 0, 0, 0);
     connect(closeButton, &QPushButton::clicked, this, &CodeField::close);
     connect(textEdit, &QTextEdit::textChanged, this, [this](){
         isSaved = false;
@@ -79,17 +78,14 @@ void CodeField::setLabel()
         pathTokens = path.split(u'/');
     }
     label->setText(pathTokens[pathTokens.length()-1]);
+    label->setToolTip(path);
 }
 
 void CodeField::setStyleSheets()
 {
     textEdit->setStyleSheet(stylesheets::codeFieldStyleSheet);
     closeButton->setStyleSheet(stylesheets::closeButtonStyleSheet);
-    label->setStyleSheet(R"(color: white;
-    background-color: #2E3440;
-    font-size: 10px;
-    padding: 3px;
-    border-radius: 5px)");
+    label->setStyleSheet(stylesheets::labelStyleSheet);
 }
 
 QTextEdit* CodeField::getTextEdit()

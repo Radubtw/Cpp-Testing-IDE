@@ -1,5 +1,7 @@
 #include "startMenu.h"
 #include "opennewprojectdialog.h"
+#include "StyleSheets.h"
+
 #include <QLabel>
 #include <QPushButton>
 #include <QGridLayout>
@@ -10,13 +12,12 @@
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
 {
-    this->setWindowTitle("C++ Unit Testing");
-    this->setStyleSheet("background-color: #3B4252;");
-    setWindowTitle("Testing");
+    setStyleSheet("background-color: #1E1E1E;");
+    setWindowTitle("Test.cpp");
     resize(800,800);
 
     title = new QLabel(this);
-    title->setText("Testing");
+    title->setText("Test.cpp");
     title->setStyleSheet("font-size: 24px; font-weight: bold; color: white;");
 
     initButtons();
@@ -30,27 +31,9 @@ void Widget::initButtons()
     existingProjectButton = new QPushButton("Select Existing Project");
     helpButton = new QPushButton("Help");
 
-    QString buttonStyle = R"(
-        QPushButton {
-            background-color: #2E3440;
-            color: white;
-            border-radius: 10px;
-            padding: 10px;
-            font-size: 16px;
-            border: 2px solid #4C566A;
-        }
-        QPushButton:hover {
-            background-color: #4C566A;
-        }
-        QPushButton:pressed {
-            background-color: #81A1C1;
-        }
-    )";
-
-
-    newProjectButton->setStyleSheet(buttonStyle);
-    existingProjectButton->setStyleSheet(buttonStyle);
-    helpButton->setStyleSheet(buttonStyle);
+    newProjectButton->setStyleSheet(stylesheets::buttonStyleSheet);
+    existingProjectButton->setStyleSheet(stylesheets::buttonStyleSheet);
+    helpButton->setStyleSheet(stylesheets::buttonStyleSheet);
     newProjectButton->setMinimumWidth(200);
     existingProjectButton->setMinimumWidth(200);
     helpButton->setMinimumWidth(200);

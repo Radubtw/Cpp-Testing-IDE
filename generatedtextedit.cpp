@@ -12,14 +12,10 @@ GeneratedTextEdit::GeneratedTextEdit(QWidget *parent)
 
     textEdit = new QTextEdit();
     label = new QLabel("Generated Code");
-    layout->addWidget(label, 0,0,1,5);
+    layout->addWidget(label, 0,0,1,2);
     layout->addWidget(textEdit, 1,0,10,5);
     textEdit->setStyleSheet(stylesheets::codeFieldStyleSheet);
-    label->setStyleSheet(R"(color: white;
-    background-color: #2E3440;
-    font-size: 10px;
-    padding: 3px;
-    border-radius: 5px)");
+    label->setStyleSheet(stylesheets::labelStyleSheet);
 }
 
 QTextEdit* GeneratedTextEdit::getTextEdit()

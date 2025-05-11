@@ -1,6 +1,8 @@
 #include <QShortcut>
 #include "menubar.h"
 #include "processes.hpp"
+#include "StyleSheets.h"
+
 MenuBar::MenuBar(QDir dirPath, QWidget* parent) : QMenuBar(parent), dirPath(dirPath)
 {
     processes = new Processes(dirPath.path());
@@ -16,7 +18,6 @@ void MenuBar::init()
     QIcon terminalIcon = QIcon(":/assets/terminal.png");
 
     file = new QMenu("&File");
-    file->setStyleSheet("background-color:000000");
     QAction* startMenuAction = new QAction("Open Start Menu");
     file->addAction(startMenuAction);
 
@@ -92,6 +93,14 @@ void MenuBar::init()
 
     setStyleSheet("background-color:000000");
     show();
+    setStyleSheet(stylesheets::menuBarStyleSheet);
+    file->setStyleSheet(stylesheets::menuStyleSheet);
+    view->setStyleSheet(stylesheets::menuStyleSheet);
+    build->setStyleSheet(stylesheets::menuStyleSheet);
+    run->setStyleSheet(stylesheets::menuStyleSheet);
+    terminal->setStyleSheet(stylesheets::menuStyleSheet);
+    output->setStyleSheet(stylesheets::menuStyleSheet);
+    testResults->setStyleSheet(stylesheets::menuStyleSheet);
 }
 
 void MenuBar::disableProcessActions()

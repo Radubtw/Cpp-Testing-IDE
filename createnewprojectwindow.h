@@ -34,7 +34,7 @@ private:
     QSplitter* codeFieldsSplitter;
     MenuBar* menuBar;
     QHBoxLayout* mainLayout;
-    QHBoxLayout* secondaryLayout;
+    QGridLayout* secondaryLayout;
     QVBoxLayout* testAndMockButtonsLayout;
     QFileSystemModel* fileSystemModel;
     QTreeView* treeView;
@@ -51,8 +51,8 @@ private:
     Processes* processes;
     QWidget* treeViewLayoutWidget;
     QString lastClickedPath;
-    QLineEdit* newFileLineEdit;
-    QLineEdit* newDirLineEdit;
+    QLineEdit* newFileLineEdit{};
+    QLineEdit* newDirLineEdit{};
     QGridLayout* treeViewLayout;
     //QPushButton* compileAndRunTests;
 public:

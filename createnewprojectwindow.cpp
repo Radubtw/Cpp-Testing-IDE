@@ -19,10 +19,9 @@ CreateNewProjectWindow::CreateNewProjectWindow(QDir dirPath, QWidget *parent)
 {
     // QString zipFilePath = "C:\\Users\\Radu\\Desktop\\googletest-1.15.2.zip";
     // QString extractPath = dirPath.absolutePath();
-    //ui->setupUi(this);
-    setWindowTitle("C++ Unit Testing");
+    setWindowTitle("Test.cpp");
     setMinimumSize(800, 800);
-    setStyleSheet("background-color: #A9A9A9;");
+    setStyleSheet("background-color: #1E1E1E; QToolTip { color: white; background-color: #1E1E1E; border: 1px solid 252526;}");
 
     fileSystemModel = new QFileSystemModel();
     fileSystemModel->setRootPath(projectPath.absolutePath());
@@ -32,7 +31,7 @@ CreateNewProjectWindow::CreateNewProjectWindow(QDir dirPath, QWidget *parent)
     //const QString projectPath = dirPath.absolutePath();
     //processes::tests::compileAndRunTests(projectPath);
     connectElements();
-
+    lastClickedPath = projectPath.absolutePath();
     // unzipWithTar(zipFilePath, extractPath);
     // compileGTest(extractPath + "\\googletest-1.15.2");
 }
@@ -68,17 +67,29 @@ void CreateNewProjectWindow::initLayout()
     treeView->setContentsMargins(0, 0, 0, 0);
 
     treeViewLayoutWidget = new QWidget();
-    QIcon newFileIcon = QIcon(":assets/newFile.png");
-    QIcon newDirectoryIcon = QIcon(":assets/newDirectory.png");
+
+    QPixmap pixmap(":/assets/newFile.png");
+    QImage img = pixmap.toImage();
+    img.invertPixels();
+    QIcon newFileIcon(QPixmap::fromImage(img));
+
     newFileButton = new QPushButton();
-    newDirectoryButton = new QPushButton();
     newFileButton->setIcon(newFileIcon);
+
+    pixmap.load(":assets/newDirectory.png");
+    img = pixmap.toImage();
+    img.invertPixels();
+    QIcon newDirectoryIcon(QPixmap::fromImage(img));
+
+    newDirectoryButton = new QPushButton();
     newDirectoryButton->setIcon(newDirectoryIcon);
-    newFileButton->setStyleSheet(" color: white;"); //TODO: stylesheets
-    newDirectoryButton->setStyleSheet("color: white;"); //TODO: stylesheets
+
+    newFileButton->setStyleSheet(stylesheets::iconButtonStyle); //TODO: stylesheets
+    newDirectoryButton->setStyleSheet(stylesheets::iconButtonStyle); //TODO: stylesheets
+
     projectName = new ClickableLabel();
     projectName->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-    projectName->setStyleSheet("color: white;font-weight: bold;");
+    projectName->setStyleSheet(stylesheets::labelStyleSheet);
     QList<QString> pathTokens;
     QString path = projectPath.absolutePath();
     if(path.contains('\\'))
@@ -90,6 +101,7 @@ void CreateNewProjectWindow::initLayout()
         pathTokens = path.split(u'/');
     }
     projectName->setText(pathTokens[pathTokens.length()-1]);
+    projectName->setToolTip(projectPath.absolutePath());
     treeViewLayout = new QGridLayout(treeViewLayoutWidget);
     treeViewLayout->addWidget(projectName, 0, 0, 1, 8);
     treeViewLayout->addWidget(newFileButton, 0,8,1,1);
@@ -108,7 +120,6 @@ void CreateNewProjectWindow::initLayout()
     codeFieldsSplitter->setStyleSheet("QSplitter::handle { background: transparent; }");
     QString emptyString = "";
     codeFields.push_back(new CodeField(emptyString, codeFieldsSplitter));
-    QString generatedString = "Generated Output";
     testCodeField = new GeneratedTextEdit(verticalMainSplitter);
     for(const auto& codeField : codeFields)
     {
@@ -125,26 +136,20 @@ void CreateNewProjectWindow::initLayout()
     verticalMainSplitter->setSizes(verticalSizes);
 
     QWidget *secondaryLayoutWrapper = new QWidget(this);
-
-    secondaryLayout = new QHBoxLayout(secondaryLayoutWrapper);
-    testAndMockButtonsLayout = new QVBoxLayout();
-    secondaryLayout->setSpacing(0);
-    secondaryLayout->setContentsMargins(0,0,0,0);
+    secondaryLayout = new QGridLayout(secondaryLayoutWrapper);
     selectedClassOrFunction = new QTextEdit(secondaryLayoutWrapper);
     selectedClassOrFunction->setStyleSheet(stylesheets::selectedClassOrFunctionStyleSheet);
     selectedClassOrFunction->setReadOnly(true);
 
-    generateTestButton = new QPushButton("Generate Test", this);
-    generateMockButton = new QPushButton("Generate Mock", this);
+    generateTestButton = new QPushButton("Generate Test");
+    generateMockButton = new QPushButton("Generate Mock");
 
-    generateTestButton->setStyleSheet(stylesheets::buttonStyleSheet);
-    generateMockButton->setStyleSheet(stylesheets::buttonStyleSheet);
+    generateTestButton->setStyleSheet(stylesheets::generateButtonStyleSheet);
+    generateMockButton->setStyleSheet(stylesheets::generateButtonStyleSheet);
+    secondaryLayout->addWidget(generateTestButton,0,0,1,2);
+    secondaryLayout->addWidget(generateMockButton,0,8,1,2);
+    secondaryLayout->addWidget(selectedClassOrFunction,1,0,6,10);
 
-    testAndMockButtonsLayout->addWidget(generateTestButton);
-    testAndMockButtonsLayout->addWidget(generateMockButton);
-
-    secondaryLayout->addWidget(selectedClassOrFunction);
-    secondaryLayout->addLayout(testAndMockButtonsLayout);
     secondaryLayoutWrapper->setLayout(secondaryLayout);
 
     verticalMainSplitter->addWidget(secondaryLayoutWrapper);
@@ -399,6 +404,7 @@ void CreateNewProjectWindow::showNewFileLineEdit()
     treeViewLayout->addWidget(newFileLineEdit,1,0,1,10);
     newFileLineEdit->show();
     newFileLineEdit->setFocus();
+    newFileLineEdit->setStyleSheet(stylesheets::inputLine);
     connect(newFileLineEdit, &QLineEdit::returnPressed, this, &CreateNewProjectWindow::createNewFile);
 }
 
@@ -412,6 +418,7 @@ void CreateNewProjectWindow::showNewDirLineEdit()
     treeViewLayout->addWidget(newDirLineEdit,1,0,1,10);
     newDirLineEdit->show();
     newDirLineEdit->setFocus();
+    newDirLineEdit->setStyleSheet(stylesheets::inputLine);
     connect(newDirLineEdit, &QLineEdit::returnPressed, this, &CreateNewProjectWindow::createNewDirectory);
 }
 

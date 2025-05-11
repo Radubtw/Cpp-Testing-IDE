@@ -18,10 +18,15 @@ private:
     QLineEdit* inputLine;
     QTextEdit* terminalOutput;
     QProcess* process;
+    QString lastLineEditText;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 signals:
+    void inFocus();
 private slots:
+    void setLineEditFocus();
     void sendCommand();
     void readOutput();
+    void appendText();
 public slots:
     void toggleTerminal();
 };
