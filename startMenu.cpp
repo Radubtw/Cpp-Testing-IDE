@@ -1,6 +1,7 @@
 #include "startMenu.h"
 #include "opennewprojectdialog.h"
 #include "StyleSheets.h"
+#include "newCMakeProjectFunctions.h"
 
 #include <QLabel>
 #include <QPushButton>
@@ -82,11 +83,17 @@ void Widget::handleNewProjectButtonClick()
     {
         QString projectPath = newProjectDialog->getProjectPath();
         QString projectName = newProjectDialog->getProjectName();
-        bool emptyProject= newProjectDialog->getEmptyProject();
+        bool emptyProject = newProjectDialog->getEmptyProject();
         QDir dir(projectPath);
         dir.mkdir(projectName);
         if(emptyProject)
         {
+            windowManager->closeStartMenu();
+            windowManager->openExistingProjectWindow(dir.absoluteFilePath(projectName));
+        }
+        else
+        {
+            createCMakeProject(projectPath, projectName);
             windowManager->closeStartMenu();
             windowManager->openExistingProjectWindow(dir.absoluteFilePath(projectName));
         }

@@ -18,7 +18,9 @@ public:
     Processes(QString projectPath, QObject* parent = nullptr);
     void unzipWithTar(const QString &zipFilePath, const QString &extractPath);
     void compileGTest(const QString &gtestDir);
-    void compileTests(const QString &projectPath);
+    void compileRegular(const QString& projectPath);
+    void compileWithNinja(const QString& projectPath);
+    void compileTests(const QString &projectPath, QStringList& buildArguments);
     void runTests(const QString &projectPath);
     void compileAndRunTests(const QString &projectPath);
     void compileProject(const QString &projectPath);

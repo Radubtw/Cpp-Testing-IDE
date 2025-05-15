@@ -53,6 +53,8 @@ void Terminal::sendCommand()
     inputLine->clear();
     terminalOutput->moveCursor(QTextCursor::End);
     lastLineEditText.clear();
+    terminalOutput->insertPlainText(process->readAllStandardOutput());
+    terminalOutput->insertPlainText(process->readAllStandardError());
 }
 
 void Terminal::readOutput()
@@ -72,8 +74,6 @@ void Terminal::appendText()
         cursor.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor, lastLineEditText.length());
         cursor.removeSelectedText();
     }
-
-    // Add current input
     QString currentText = inputLine->text();
     terminalOutput->insertPlainText(currentText);
     lastLineEditText = currentText;
@@ -83,8 +83,8 @@ bool Terminal::eventFilter(QObject *watched, QEvent *event)
 {
     if (watched == terminalOutput) {
         if (event->type() == QEvent::FocusIn || event->type() == QEvent::MouseButtonPress) {
-            inputLine->setFocus();  // Redirect input to hidden lineEdit
-            return true; // Swallow the event if needed
+            inputLine->setFocus();
+            return true;
         }
     }
     return QWidget::eventFilter(watched, event);

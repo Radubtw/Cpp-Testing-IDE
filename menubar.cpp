@@ -31,12 +31,17 @@ void MenuBar::init()
     view->addAction(splitCodeFieldAction);
 
     build = new QMenu("&Build");
-    QAction* buildTestsAction = new QAction("Build Tests");
-    buildTestsAction->setIcon(buildIcon);
-    buildTestsAction->setShortcut(QKeySequence(tr("Ctrl+5")));
+    QAction* regularBuildAction = new QAction("Regular build");
+    regularBuildAction->setIcon(buildIcon);
+    regularBuildAction->setShortcut(QKeySequence(tr("Ctrl+B")));
+    QAction* ninjaBuildAction = new QAction("Ninja build");
+    ninjaBuildAction->setIcon(buildIcon);
+    ninjaBuildAction->setShortcut(QKeySequence(tr("Ctrl+N")));
 
-    build->addAction(buildTestsAction);
-    processActions.push_back(buildTestsAction);
+    build->addAction(regularBuildAction);
+    processActions.push_back(regularBuildAction);
+    build->addAction(ninjaBuildAction);
+    processActions.push_back(ninjaBuildAction);
 
     run = new QMenu("&Run");
     QAction *runProjectAction = new QAction("Run project");
@@ -85,7 +90,8 @@ void MenuBar::init()
     QObject::connect(terminalAction, &QAction::triggered, this, &MenuBar::toggleTerminal);
     QObject::connect(clearOutputAction, &QAction::triggered, this, &MenuBar::clearOutput);
     QObject::connect(runTestsAction, &QAction::triggered, this, &MenuBar::runTests);
-    QObject::connect(buildTestsAction, &QAction::triggered, this, &MenuBar::compileTests);
+    QObject::connect(regularBuildAction, &QAction::triggered, this, &MenuBar::compileTestsRegular);
+    QObject::connect(ninjaBuildAction, &QAction::triggered, this, &MenuBar::compileTestsNinja);
     QObject::connect(toggleTreeViewAction, &QAction::triggered, this, &MenuBar::toggleExplorer);
     QObject::connect(splitCodeFieldAction, &QAction::triggered, this, &MenuBar::splitCodeField);
     QObject::connect(testResultsAction, &QAction::triggered, this, &MenuBar::openTestResults);
@@ -161,14 +167,18 @@ void MenuBar::openTestResults()
 void MenuBar::runTests()
 {
     emit processStarted();
-    // QObject::connect(processes->process,&QProcess::started, this, &MenuBar::disableProcessActions, Qt::QueuedConnection);
-    // QObject::connect(processes->process,&QProcess::finished, this, &MenuBar::enableProcessActions, Qt::QueuedConnection);
     processes->runTests(dirPath.absolutePath());
 }
 
-void MenuBar::compileTests()
+void MenuBar::compileTestsRegular()
 {
     emit processStarted();
-    processes->compileTests(dirPath.absolutePath());
+    processes->compileRegular(dirPath.absolutePath());
+}
+
+void MenuBar::compileTestsNinja()
+{
+    emit processStarted();
+    processes->compileWithNinja(dirPath.absolutePath());
 }
 

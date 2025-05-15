@@ -43,7 +43,8 @@ public slots:
     void clearOutput();
     void toggleExplorer();
     void splitCodeField();
-    void compileTests();
+    void compileTestsRegular();
+    void compileTestsNinja();
     void runTests();
     void openTestResults();
     void openStartMenu();

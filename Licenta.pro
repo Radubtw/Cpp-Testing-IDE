@@ -17,6 +17,7 @@ SOURCES += \
     inputtextedit.cpp \
     main.cpp \
     menubar.cpp \
+    newcmakeprojectfunctions.cpp \
     opennewprojectdialog.cpp \
     outputsection.cpp \
     parser.cpp \
@@ -37,6 +38,8 @@ HEADERS += \
     generatetestdialog.h \
     inputtextedit.h \
     menubar.h \
+    newcmakeprojectconstants.h \
+    newcmakeprojectfunctions.h \
     opennewprojectdialog.h \
     outputsection.h \
     parser.h \

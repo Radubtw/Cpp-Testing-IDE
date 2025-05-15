@@ -69,7 +69,20 @@ void Processes::compileGTest(const QString &gtestSourceDir) {
     }
     qDebug() << "GTest compiled successfully!";
 }
-void Processes::compileTests(const QString& projectPath)
+
+void Processes::compileRegular(const QString& projectPath)
+{
+    QStringList arguments = {".."};
+    compileTests(projectPath, arguments);
+}
+
+void Processes::compileWithNinja(const QString& projectPath)
+{
+    QStringList arguments = {"..", "-GNinja"};
+    compileTests(projectPath, arguments);
+}
+
+void Processes::compileTests(const QString& projectPath, QStringList& buildArguments)
 {
     // Disconnect any previous connections
     disconnect(process, &QProcess::finished, nullptr, nullptr);
@@ -83,7 +96,7 @@ void Processes::compileTests(const QString& projectPath)
     // Configure for CMake step
     process->setWorkingDirectory(buildDir.absolutePath());
     process->setProgram("cmake");
-    process->setArguments({"..", "-G Ninja"});
+    process->setArguments(buildArguments);
 
     // Connect output handlers
     connect(process, &QProcess::readyReadStandardOutput, this, &Processes::readOutput);
@@ -123,6 +136,10 @@ void Processes::compileTests(const QString& projectPath)
 void Processes::runTests(const QString& projectPath)
 {
     output = "";
+    if(!QDir(projectPath +"/build").exists())
+    {
+        return;
+    }
     process = new QProcess(this);
 
     process->setWorkingDirectory(projectPath + "/build");
@@ -131,7 +148,6 @@ void Processes::runTests(const QString& projectPath)
     connect(process, &QProcess::readyReadStandardOutput, this, &Processes::readOutput);
 
     connect(process, &QProcess::readyReadStandardError, this, &Processes::readOutput);
-    connect(process, &QProcess::finished, process, &QProcess::deleteLater);
     QFile file(projectPath + "/testsOutput.log");
     file.open(QIODevice::WriteOnly | QIODevice::Text);
     QTextStream out(&file);
@@ -144,7 +160,7 @@ void Processes::runTests(const QString& projectPath)
 void Processes::compileAndRunTests(const QString& projectPath)
 {
     output = "";
-    compileTests(projectPath);
+    //compileTests(projectPath);
     if(process->state() == QProcess::NotRunning)
     {
         runTests(projectPath);
