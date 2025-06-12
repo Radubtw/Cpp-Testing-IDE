@@ -6,7 +6,6 @@
 Terminal::Terminal(QString workingDir, QWidget *parent)
     : QWidget{parent}
 {
-    // widget = new QWidget(this);
     mainLayout = new QBoxLayout(QBoxLayout::TopToBottom, this);
     inputLine = new QLineEdit(this);
     terminalOutput = new QTextEdit(this);

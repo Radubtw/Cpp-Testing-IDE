@@ -104,16 +104,6 @@ const QString testFileContents{R"(
 /***********************************************/
 
 #include "Component1/ExampleHeader.hpp"
-
-int sum(int a, int b)
-{
-    return a + b;
-}
-int sub(int a, int b)
-{
-    return a - b;
-}
-#include "Component1/ExampleHeader.hpp"
 TEST(ExampleSuite, exampleOne) {
     EXPECT_EQ(1, 1);
 }

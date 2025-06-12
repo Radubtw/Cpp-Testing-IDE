@@ -17,8 +17,6 @@ CreateNewProjectWindow::CreateNewProjectWindow(QDir dirPath, QWidget *parent)
     , projectPath(dirPath)
     , ui(new Ui::Form)
 {
-    // QString zipFilePath = "C:\\Users\\Radu\\Desktop\\googletest-1.15.2.zip";
-    // QString extractPath = dirPath.absolutePath();
     setWindowTitle("Test.cpp");
     setMinimumSize(800, 800);
     setStyleSheet("background-color: #1E1E1E; QToolTip { color: white; background-color: #1E1E1E; border: 1px solid 252526;}");
@@ -27,13 +25,8 @@ CreateNewProjectWindow::CreateNewProjectWindow(QDir dirPath, QWidget *parent)
     fileSystemModel->setRootPath(projectPath.absolutePath());
     initLayout();
     initMenuBar(projectPath);
-
-    //const QString projectPath = dirPath.absolutePath();
-    //processes::tests::compileAndRunTests(projectPath);
     connectElements();
     lastClickedPath = projectPath.absolutePath();
-    // unzipWithTar(zipFilePath, extractPath);
-    // compileGTest(extractPath + "\\googletest-1.15.2");
 }
 
 void CreateNewProjectWindow::initMenuBar(QDir dirPath)
@@ -116,7 +109,7 @@ void CreateNewProjectWindow::initLayout()
     projectName->setContentsMargins(0, 0, 0, 0);
 
     codeFieldsSplitter = new QSplitter(Qt::Horizontal, horizontalMainSplitter);
-    codeFieldsSplitter->setHandleWidth(1); // thinner handle
+    codeFieldsSplitter->setHandleWidth(1);
     codeFieldsSplitter->setStyleSheet("QSplitter::handle { background: transparent; }");
     QString emptyString = "";
     codeFields.push_back(new CodeField(emptyString, codeFieldsSplitter));
@@ -179,7 +172,7 @@ void CreateNewProjectWindow::connectElements()
     connect(generateTestButton, &QPushButton::clicked, this, &CreateNewProjectWindow::openGenerateTestDialog);
     connect(generateMockButton, &QPushButton::clicked, this, &CreateNewProjectWindow::generateMock);
     connect(menuBar, &MenuBar::outputUpdated, outputSection, &OutputSection::updateOutput);
-    connect(menuBar->processes,&Processes::outputChanged,this, &CreateNewProjectWindow::readOutput); // ??????????
+    connect(menuBar->processes,&Processes::outputChanged,this, &CreateNewProjectWindow::readOutput);
     connect(menuBar, &MenuBar::outputToggled, this, &CreateNewProjectWindow::toggleOutput);
     connect(menuBar, &MenuBar::terminalToggled, this, &CreateNewProjectWindow::toggleTerminal);
     connect(menuBar, &MenuBar::outputCleared, outputSection, &OutputSection::clearOutput);
@@ -316,10 +309,11 @@ void CreateNewProjectWindow::splitCodeField()
     QFile file(codeField->getPath());
     if(! QFileInfo(file).isFile())
     {
+        qDebug() << "PATH: " << codeField->getPath();
         return;
     }
     qDebug() << "PATH: " << codeField->getPath();
-
+    file.open(QIODevice::ReadOnly);
     QTextStream in(&file);
     QString fileContents = in.readAll();
     file.close();

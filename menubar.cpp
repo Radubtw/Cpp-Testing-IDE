@@ -44,16 +44,11 @@ void MenuBar::init()
     processActions.push_back(ninjaBuildAction);
 
     run = new QMenu("&Run");
-    QAction *runProjectAction = new QAction("Run project");
-    runProjectAction->setIcon(runIcon);
-    runProjectAction->setShortcut(QKeySequence(tr("Ctrl+R")));
     QAction *runTestsAction = new QAction("Run tests");
     runTestsAction->setIcon(runIcon);
     runTestsAction->setShortcut(QKeySequence(tr("Ctrl+T")));
 
-    run->addAction(runProjectAction);
     run->addAction(runTestsAction);
-    processActions.push_back(runProjectAction);
     processActions.push_back(runTestsAction);
 
     terminal = new QMenu("&Terminal");

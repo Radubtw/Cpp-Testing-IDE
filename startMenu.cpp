@@ -30,32 +30,24 @@ void Widget::initButtons()
 {
     newProjectButton = new QPushButton("Create New Project");
     existingProjectButton = new QPushButton("Select Existing Project");
-    helpButton = new QPushButton("Help");
+    //helpButton = new QPushButton("Help");
 
     newProjectButton->setStyleSheet(stylesheets::buttonStyleSheet);
     existingProjectButton->setStyleSheet(stylesheets::buttonStyleSheet);
-    helpButton->setStyleSheet(stylesheets::buttonStyleSheet);
+    //helpButton->setStyleSheet(stylesheets::buttonStyleSheet);
     newProjectButton->setMinimumWidth(200);
     existingProjectButton->setMinimumWidth(200);
-    helpButton->setMinimumWidth(200);
+    //helpButton->setMinimumWidth(200);
     spacer1 = new QSpacerItem(100,100,QSizePolicy::Expanding);
     QVBoxLayout* buttonLayout = new QVBoxLayout(this);
     buttonLayout->addWidget(title, 0, Qt::AlignHCenter);
     buttonLayout->addWidget(existingProjectButton, 10, Qt::AlignLeft);
     buttonLayout->addWidget(newProjectButton, 10, Qt::AlignLeft);
-    buttonLayout->addWidget(helpButton, 10, Qt::AlignLeft);
+    //buttonLayout->addWidget(helpButton, 10, Qt::AlignLeft);
     buttonLayout->addSpacerItem(spacer1);
     buttonLayout->addSpacerItem(spacer1);
     buttonLayout->addSpacerItem(spacer1);
-    //this->setLayout(buttonLayout);
-    // mainLayout->addItem(spacer1, 0, 2, Qt::AlignHCenter);
-    // mainLayout->addWidget(newProjectButton, 2 ,1, Qt::AlignJustify);
-    // mainLayout->addWidget(existingProjectButton, 2, 3, Qt::AlignJustify);
-    // mainLayout->addWidget(helpButton,3,2, Qt::AlignHCenter);
-    // mainLayout->addItem(spacer1, 4, 2, Qt::AlignHCenter);
-    // mainLayout->addItem(spacer1, 2, 0, Qt::AlignHCenter);
-    // mainLayout->addItem(spacer1, 2, 4, Qt::AlignHCenter);
-    // mainLayout->setColumnMinimumWidth(100,100);
+
     connect(existingProjectButton, &QPushButton::released, this, &Widget::handleExistingProjectButtonClick);
     connect(newProjectButton, &QPushButton::released, this, &Widget::handleNewProjectButtonClick);
 

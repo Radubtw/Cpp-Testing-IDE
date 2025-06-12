@@ -36,7 +36,7 @@ void createCMakeProject(const QString path, const QString projectName)
     currentDir.cd("..");
     currentDir.mkdir("tests");
     currentDir.cd("tests");
-    addFile(currentDir.absolutePath(), "Example_test", fileType::Source, newProjectConstants::testFileContents);
+    addFile(currentDir.absolutePath(), "ExampleTest", fileType::Source, newProjectConstants::testFileContents);
     addFile(currentDir.absolutePath(), "CMakeLists", fileType::CMakeLists, newProjectConstants::testsCmakeListsContents);
 
 }
